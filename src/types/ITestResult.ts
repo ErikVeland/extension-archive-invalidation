@@ -1,4 +1,5 @@
-import * as Promise from 'bluebird';
+import Bluebird from 'bluebird';
+const Promise = Bluebird;
 
 export type ProblemSeverity = 'warning' | 'error';
 
