@@ -12,16 +12,16 @@ function genIniTweaksIni(api: types.IExtensionApi): Promise<string> {
   const parser = new IniParser(new WinapiFormat() as any);
   const archivesKey = archiveListKey(gameId);
   return parser.read(iniPath(gameId))
-  .then(ini => {
-    let archives = defaultArchives(gameId);
-    if ((ini.data['Archive'] !== undefined) && (ini.data['Archive'][archivesKey] !== undefined)) {
-      archives = ini.data['Archive'][archivesKey];
-    }
-    return Promise.resolve(`[Archive]
+    .then(ini => {
+      let archives = defaultArchives(gameId);
+      if ((ini.data['Archive'] !== undefined) && (ini.data['Archive'][archivesKey] !== undefined)) {
+        archives = ini.data['Archive'][archivesKey];
+      }
+      return Promise.resolve(`[Archive]
 bInvalidateOlderFiles=1
 bUseArchives=1
 ${archivesKey}=${REDIRECTION_FILE}, ${archives}`);
-  });
+    });
 }
 
 function enableBSARedirection(api: types.IExtensionApi): Promise<void> {
@@ -33,8 +33,8 @@ function enableBSARedirection(api: types.IExtensionApi): Promise<void> {
   }
 
   const gamePath: string = util.getSafe(
-      store.getState(),
-      ['settings', 'gameMode', 'discovered', gameMode, 'path'], undefined);
+    store.getState(),
+    ['settings', 'gameMode', 'discovered', gameMode, 'path'], undefined);
 
   if (gamePath === undefined) {
     // TODO: happened in testing, but how does one get here with no path configured?
@@ -61,9 +61,9 @@ function enableBSARedirection(api: types.IExtensionApi): Promise<void> {
   const dummyFile = path.join(path.dirname(invalidationPath), 'dummy', 'dummy.dds');
   const createDummy = () => fs.ensureDirWritableAsync(path.dirname(dummyFile))
     .then(() => fs.writeFileAsync(dummyFile, '', { encoding: 'utf8' })
-    .catch(err => err.code !== 'EEXIST' ? Promise.reject(err) : Promise.resolve()));
+      .catch(err => err.code !== 'EEXIST' ? Promise.reject(err) : Promise.resolve()));
   const cleanupDummy = () => Promise.mapSeries([dummyFile, path.dirname(dummyFile)],
-    iter => fs.removeAsync(iter).catch(err => Promise.resolve()));
+                                               iter => fs.removeAsync(iter).catch(err => Promise.resolve()));
 
   return new Promise((resolve, reject) => {
     api.events.emit('create-mod', gameMode, mod, (error) => {
@@ -87,7 +87,7 @@ function enableBSARedirection(api: types.IExtensionApi): Promise<void> {
     .then(() => cleanupDummy())
     .then(() => genIniTweaksIni(api))
     .then(data => fs.writeFileAsync(
-        path.join(iniTweaksPath, redirectionIni), data))
+      path.join(iniTweaksPath, redirectionIni), data))
     .then(() => {
       const profile = selectors.activeProfile(store.getState());
       store.dispatch(actions.setModEnabled(profile.id, REDIRECTION_MOD, true));
@@ -111,10 +111,10 @@ export function toggleInvalidation(api: types.IExtensionApi, gameMode: string): 
     return enableBSARedirection(api)
       .catch(util.NotSupportedError, err => {
         api.showErrorNotification('Failed to add invalidation mod',
-          'The extension providing BSA support has been disabled or removed. '
+                                  'The extension providing BSA support has been disabled or removed. '
           + 'Without it, Vortex can\'t provide BSA redirection.', {
-          allowReport: false,
-        });
+                                    allowReport: false,
+                                  });
         api.events.emit('remove-mod', gameMode, REDIRECTION_MOD);
       })
       .catch(err => {

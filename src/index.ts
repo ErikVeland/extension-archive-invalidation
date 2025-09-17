@@ -21,8 +21,8 @@ function testArchivesAge(api: types.IExtensionApi) {
   }
 
   const gamePath: string = util.getSafe(
-      state,
-      ['settings', 'gameMode', 'discovered', gameId, 'path'], undefined);
+    state,
+    ['settings', 'gameMode', 'discovered', gameId, 'path'], undefined);
 
   if (gamePath === undefined) {
     // TODO: happened in testing, but how does one get here with no path configured?
@@ -38,49 +38,49 @@ function testArchivesAge(api: types.IExtensionApi) {
   }
 
   return filesNewer(dataPath, fileFilter(gameId), age)
-      .then((files: string[]) => {
-        if (files.length === 0) {
-          return Promise.resolve(undefined);
-        }
+    .then((files: string[]) => {
+      if (files.length === 0) {
+        return Promise.resolve(undefined);
+      }
 
-        return Promise.resolve({
-          description: {
-            short: 'Loose files may not get loaded',
-            long:
+      return Promise.resolve({
+        description: {
+          short: 'Loose files may not get loaded',
+          long:
                 'Due to oddities in the game engine, some loose files will not ' +
                 'get loaded unless we change the filetime on the vanilla BSA/BA2 files. ' +
                 'There is no drawback to doing this.',
-          },
-          severity: 'warning',
-          automaticFix: () => new Promise<void>(
-                  (fixResolve, fixReject) =>
-                      Promise.map(files, file => fs.utimesAsync(
-                                             path.join(dataPath, file),
-                                             age.getTime() / 1000,
-                                             age.getTime() / 1000))
-                          .then((stats: any) => {
-                            fixResolve();
-                            return Promise.resolve(undefined);
-                          })
-                          .catch(err => {
-                            api.store.dispatch(actions.addNotification({
-                              type: 'error',
-                              title: 'Failed to change file times',
-                              message: err.code === 'EPERM'
-                                ? 'Game files are write protected'
-                                : err.message,
-                            }) as any);
-                            fixResolve();
-                          })),
-        });
-      })
-      .catch(util.UserCanceled, () => Promise.resolve(undefined))
-      .catch((err: Error) => {
-        api.showErrorNotification('Failed to read bsa/ba2 files.', err, {
-          allowReport: (err as any).code !== 'ENOENT',
-        });
-        return Promise.resolve(undefined);
+        },
+        severity: 'warning',
+        automaticFix: () => new Promise<void>(
+          (fixResolve, fixReject) =>
+            Promise.map(files, file => fs.utimesAsync(
+              path.join(dataPath, file),
+              age.getTime() / 1000,
+              age.getTime() / 1000))
+              .then((stats: any) => {
+                fixResolve();
+                return Promise.resolve(undefined);
+              })
+              .catch(err => {
+                api.store.dispatch(actions.addNotification({
+                  type: 'error',
+                  title: 'Failed to change file times',
+                  message: err.code === 'EPERM'
+                    ? 'Game files are write protected'
+                    : err.message,
+                }) as any);
+                fixResolve();
+              })),
       });
+    })
+    .catch(util.UserCanceled, () => Promise.resolve(undefined))
+    .catch((err: Error) => {
+      api.showErrorNotification('Failed to read bsa/ba2 files.', err, {
+        allowReport: (err as any).code !== 'ENOENT',
+      });
+      return Promise.resolve(undefined);
+    });
 }
 
 function applyIniSettings(api: types.IExtensionApi,
@@ -130,14 +130,14 @@ function init(context: types.IExtensionContext): boolean {
 
   context.once(() => {
     context.api.onAsync('apply-settings',
-      (profile: types.IProfile, filePath: string, ini: IniFile<any>) => {
-        log('debug', 'apply AI settings', { gameId: profile.gameId, filePath });
-        if (isSupported(profile.gameId)
+                        (profile: types.IProfile, filePath: string, ini: IniFile<any>) => {
+                          log('debug', 'apply AI settings', { gameId: profile.gameId, filePath });
+                          if (isSupported(profile.gameId)
             && (filePath.toLowerCase() === iniPath(profile.gameId).toLowerCase())) {
-          applyIniSettings(context.api, profile, ini);
-        }
-        return Promise.resolve();
-      });
+                            applyIniSettings(context.api, profile, ini);
+                          }
+                          return Promise.resolve();
+                        });
   });
 
   return true;

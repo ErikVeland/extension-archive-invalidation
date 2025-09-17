@@ -53,7 +53,7 @@ class Settings extends ComponentEx<IProps, {}> {
   private toggle = (enabled: boolean) => {
     const { gameMode } = this.props;
     toggleInvalidation(this.context.api, gameMode)
-    .then(() => null);
+      .then(() => null);
   }
 }
 
